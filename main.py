@@ -576,6 +576,36 @@ async def upload(bot: Client, m: Message):
                 name1 = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "@").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
                 name = f'{str(count).zfill(3)}) {name1[:60]}'
                 cmd = f'yt-dlp -o "{name}.mp4" "{url}"'
+                # ... (inside your upload function, within the loop)
+
+            elif "transcoded-videos-v2.classx.co.in" in url:
+                # Based on analysis, add required headers.
+                # !!! IMPORTANT: Replace placeholders with actual values from browser inspection !!!
+                
+                # These headers are HYPOTHETICAL/EXAMPLE from Classplus, adjust for ClassX
+                classx_headers = {
+                    'Host': 'transcoded-videos-v2.classx.co.in', # Verify this host
+                    'Referer': 'https://web.classx.co.in/',      # Most likely referer, verify
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36', # Use your browser's UA
+                    # You MUST find these custom headers from your browser's network tab
+                    # 'x-access-token': 'YOUR_ACTUAL_CLASSX_X_ACCESS_TOKEN',
+                    # 'device-id': 'YOUR_ACTUAL_DEVICE_ID',
+                    # 'app-version': 'YOUR_ACTUAL_APP_VERSION',
+                    # 'api-version': 'YOUR_ACTUAL_API_VERSION',
+                    # 'accept-encoding': 'gzip',
+                    # 'Connection': 'keep-alive',
+                    # 'Origin': 'https://web.classx.co.in', # Verify Origin
+                }
+
+                # Construct the --add-header part for yt-dlp
+                headers_str = ""
+                for key, value in classx_headers.items():
+                    headers_str += f' --add-header "{key}:{value}"'
+
+                cmd = f'yt-dlp {headers_str} -f "{ytf}" "{url}" -o "{name}.mp4"'
+
+# ... (rest of your code)
+            
                 
             elif "https://appx-transcoded-videos-mcdn.akamai.net.in/videos/bhainskipathshala-data/" in url:
                 url = url.replace("https://appx-transcoded-videos-mcdn.akamai.net.in/videos/bhainskipathshala-data/", "")
