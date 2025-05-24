@@ -606,7 +606,148 @@ async def upload(bot: Client, m: Message):
 
 # ... (rest of your code)
             
-                
+          elif "https://cpvod.testbook.com/" in url:
+                url = url.replace("https://cpvod.testbook.com/","https://media-cdn.classplusapp.com/drm/")
+                url = 'https://dragoapi.vercel.app/classplus?link=' + url
+                mpd, keys = helper.get_mps_and_keys(url)
+                url = mpd
+                keys_string = " ".join([f"--key {key}" for key in keys])
+            elif "classplusapp.com/drm/" in url:
+                url = 'https://dragoapi.vercel.app/classplus?link=' + url
+                mpd, keys = helper.get_mps_and_keys(url)
+                url = mpd
+                keys_string = " ".join([f"--key {key}" for key in keys])
+            elif "edge.api.brightcove.com" in url:
+                bcov = 'bcov_auth={yourtoken} #yourcwtoken
+                url = url.split("bcov_auth")[0]+bcov
+            elif "tencdn.classplusapp" in url:
+                headers = {'Host': 'api.classplusapp.com', 'x-access-token': f'{token_cp}', 'user-agent': 'Mobile-Android', 'app-version': '1.4.37.1', 'api-version': '18', 'device-id': '5d0d17ac8b3c9f51', 'device-details': '2848b866799971ca_2848b8667a33216c_SDK-30', 'accept-encoding': 'gzip'}
+                params = (('url', f'{url}'))
+                response = requests.get('https://api.classplusapp.com/cams/uploader/video/jw-signed-url', headers=headers, params=params)
+                url = response.json()['url']
+            elif 'videos.classplusapp' in url:
+                url = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers={'x-access-token': f'{token_cp}'}).json()['url']
+            elif 'media-cdn.classplusapp.com' in url or 'media-cdn-alisg.classplusapp.com' in url or 'media-cdn-a.classplusapp.com' in url:
+                headers = { 'x-access-token': f'{token_cp}',"X-CDN-Tag": "empty"}
+                response = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers=headers)
+                url = response.json()['url']
+            elif 'encrypted.m' in url:
+                appxkey = url.split('*')[1]
+                url = url.split('*')[0]
+            elif url.startswith("https://videotest.adda247.com/"):
+                if url.split("/")[3] != "demo":
+                    url = f'https://videotest.adda247.com/demo/{url.split("https://videotest.adda247.com/")[1]}'
+            elif 'master.mpd' in url:
+                url = f"{api_url}pw-dl?url={url}&token={token}&authorization={api_token}&q={raw_text2}"
+
+            name1 = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
+            name = f'{name1[:60]} 𝐃𝐈𝐋𝐉𝐀𝐋𝐄 ❤️'
+
+            if "youtu" in url:
+                ytf = f"b[height<={raw_text2}][ext=mp4]/bv[height<={raw_text2}][ext=mp4]+ba[ext=m4a]/b[ext=mp4]"
+            else:
+                ytf = f"b[height<={raw_text2}]/bv[height<={raw_text2}]+ba/b/bv+ba"
+
+            if "jw-prod" in url:
+                cmd = f'yt-dlp -o "{name}.mp4" "{url}"'
+            else:
+                cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
+
+            try:
+                cc = f'**╭── ⋆⋅☆⋅⋆ ──╮**\n✦ **{str(count).zfill(3)}** ✦\n**╰── ⋆⋅☆⋅⋆ ──╯**\n\n🎭 **Title:** `{name1} 😎 Admin:)™.mkv`\n🖥️ **Resolution:** [{res}]\n\n📘 **Course:** `{b_name}`\n\n🚀 **Extracted By:** `{MR}`'
+                cc1 = f'**╭── ⋆⋅☆⋅⋆ ──╮**\n✦ **{str(count).zfill(3)}** ✦\n**╰── ⋆⋅☆⋅⋆ ──╯**\n\n🎭 **Title:** `{name1} 😎 Admin:)™.pdf`\n\n📘 **Course:** `{b_name}`\n\n🚀 **Extracted By:** `{MR}`'
+                cc2 = f'**╭── ⋆⋅☆⋅⋆ ──╮**\n✦ **{str(count).zfill(3)}** ✦\n**╰── ⋆⋅☆⋅⋆ ──╯**\n\n🎭 **Title:** `{name1} 😎 Admin:)™.jpg`\n\n📘 **Course:** `{b_name}`\n\n🚀 **Extracted By:** `{MR}`'
+                ccyt = f'**╭── ⋆⋅☆⋅⋆ ──╮**\n✦ **{str(count).zfill(3)}** ✦\n**╰── ⋆⋅☆⋅⋆ ──╯**\n\n🎭 **Title:** `{name1} 😎 Admin:)™.mkv`\n🎬 **Video Link:** {url}\n🖥️ **Resolution:** [{res}]\n\n📘 **Course:** `{b_name}`\n\n🚀 **Extracted By:** `{MR}`'
+
+                if "drive" in url:
+                    try:
+                        ka = await helper.download(url, name)
+                        copy = await bot.send_document(chat_id=m.chat.id, document=ka, caption=cc1)
+                        count += 1
+                        os.remove(ka)
+                        time.sleep(1)
+                    except FloodWait as e:
+                        await m.reply_text(str(e))
+                        time.sleep(e.x)
+                        continue
+
+                elif 'pdf*' in url:
+                    pdf_key = url.split('*')[1]
+                    url = url.split('*')[0]
+                    pdf_enc = await helper.download_and_decrypt_pdf(url, name, pdf_key)
+                    copy = await bot.send_document(chat_id=m.chat.id, document=pdf_enc, caption=cc1)
+                    count += 1
+                    os.remove(pdf_enc)
+                    continue
+
+                elif ".pdf" in url:
+                    try:
+                        cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
+                        download_cmd = f"{cmd} -R 25 --fragment-retries 25"
+                        os.system(download_cmd)
+                        copy = await bot.send_document(chat_id=m.chat.id, document=f'{name}.pdf', caption=cc1)
+                        count += 1
+                        os.remove(f'{name}.pdf')
+                    except FloodWait as e:
+                        await m.reply_text(str(e))
+                        time.sleep(e.x)
+                        continue
+
+                elif any(img in url.lower() for img in ['.jpeg', '.png', '.jpg']):
+                    try:
+                        subprocess.run(['wget', url, '-O', f'{name}.jpg'], check=True)
+                        await bot.send_photo(chat_id=m.chat.id, caption=cc2, photo=f'{name}.jpg')
+                    except subprocess.CalledProcessError:
+                        await m.reply("Failed to download the image. Please check the URL.")
+                    except Exception as e:
+                        await m.reply(f"An error occurred: {e}")
+                    finally:
+                        if os.path.exists(f'{name}.jpg'):
+                            os.remove(f'{name}.jpg')
+
+                elif "youtu" in url:
+                    try:
+                        await bot.send_photo(chat_id=m.chat.id, photo=photo, caption=ccyt)
+                        count += 1
+                    except Exception as e:
+                        await m.reply_text(str(e))
+                        await asyncio.sleep(1)
+                        continue
+
+                elif ".ws" in url and url.endswith(".ws"):
+                    try:
+                        await helper.pdf_download(f"{api_url}utkash-ws?url={url}&authorization={api_token}", f"{name}.html")
+                        time.sleep(1)
+                        await bot.send_document(chat_id=m.chat.id, document=f"{name}.html", caption=cc1)
+                        os.remove(f'{name}.html')
+                        count += 1
+                        time.sleep(5)
+                    except FloodWait as e:
+                        await asyncio.sleep(e.x)
+                        await m.reply_text(str(e))
+                        continue
+
+                elif 'encrypted.m' in url:
+                    Show = f"✈️ 𝐏𝐑𝐎𝐆𝐑𝐄𝐒𝐒 ✈️\n\n┠ 📈 Total Links = {len(links)}\n┠ 💥 Currently On = {str(count).zfill(3)}\n\n**📩 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃𝐈𝐍𝐆 📩**\n\n**🧚🏻‍♂️ Title** : {name}\n├── **Extention** : {MR}\n├── **Resolution** : {raw_text2}\n├── **Url** : `Kya karega URL dekh ke  BSDK 👻👻`\n├── **Thumbnail** : `{input6.text}`\n├── **Bot Made By** : "
+                    prog = await m.reply_text(Show)
+                    res_file = await helper.download_and_decrypt_video(url, cmd, name, appxkey)
+                    filename = res_file
+                    await prog.delete(True)
+                    await helper.send_vid(bot, m, cc, filename, thumb, name, prog)
+                    count += 1
+                    await asyncio.sleep(1)
+                    continue
+
+                elif 'drmcdni' in url or 'drm/wv' in url:
+                    Show = f"𝐏𝐑𝐎𝐆𝐑𝐄𝐒𝐒 ✈️\n\n┠ 📈 Total Links = {len(links)}\n┠ 💥 Currently On = {str(count).zfill(3)}\n\n**📩 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃𝐈𝐍𝐆 📩**\n\n**🧚🏻‍♂️ Title** : {name}\n├── **Extention** : {MR}\n├── **Resolution** : {raw_text2}\n├── **Url** : `Kya karega URL dekh ke  BSDK 👻👻`\n├── **Thumbnail** : `{input6.text}`\n├── **Bot Made By** : "
+                    prog = await m.reply_text(Show)
+                    res_file = await helper.decrypt_and_merge_video(mpd, keys_string, path, name, raw_text2)
+                    filename = res_file
+                    await prog.delete(True)
+                    await helper.send_vid(bot, m, cc, filename, thumb, name, prog)
+                    count += 1
+                    await asyncio.sleep(1)
+                    continue      
             elif "https://appx-transcoded-videos-mcdn.akamai.net.in/videos/bhainskipathshala-data/" in url:
                 url = url.replace("https://appx-transcoded-videos-mcdn.akamai.net.in/videos/bhainskipathshala-data/", "")
                 name1 = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "@").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
